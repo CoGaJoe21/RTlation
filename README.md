@@ -25,6 +25,8 @@ The script puts everything inside the project folder: `uv` and Python 3.11 in `.
 | `-Tts chatterbox,qwen3` | installs both voice models (default: only `chatterbox`) |
 | `-Tts none` | no spoken output |
 
+`setup-all.bat` installs everything at once (both speech recognition models and both voice models) and limits downloads to 8 MB/s.
+
 ## Running
 
 ```bat

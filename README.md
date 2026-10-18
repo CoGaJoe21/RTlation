@@ -2,82 +2,86 @@
 
 *Real-time speech translation in your own voice – runs locally on your GPU.*
 
-**Real Time / Translation** – spricht man in einer Sprache ins Mikrofon, kommt die Übersetzung in einer anderen heraus. Alles läuft lokal auf dem eigenen Rechner.
+**Language:** English · [Deutsch](README.de.md)
 
-Stand: **Schritt 3** – Sprache wird erkannt, übersetzt und vorgelesen, auf Wunsch mit der eigenen Stimme.
+**Real Time / Translation** – speak into your microphone in one language and the translation comes out in another, spoken in your own voice if you like. Everything runs locally on your own computer; nothing is sent to the cloud.
 
-## Einrichten (Windows, NVIDIA-Grafikkarte)
+The user interface is currently in German. The labels in bold below are the ones you will see on screen, with a translation in brackets.
 
-Voraussetzungen: NVIDIA-Grafikkarte mit mindestens 12 GB Speicher und ein installiertes, gestartetes [Ollama](https://ollama.com).
+## Setup (Windows, NVIDIA GPU)
+
+Requirements: an NVIDIA graphics card with at least 12 GB of memory and [Ollama](https://ollama.com) installed and running.
 
 ```bat
 setup.bat
 ```
 
-Das Skript legt alles im Projektordner ab: `uv` und Python 3.11 in `.tools`, die Pakete in `.venv`, die Modelle in `models`. Nur das Übersetzungsmodell liegt im Ollama-Speicher. Das Skript kann jederzeit erneut gestartet werden und überspringt, was schon da ist.
+The script puts everything inside the project folder: `uv` and Python 3.11 in `.tools`, the packages in `.venv`, the models in `models`. Only the translation model is stored by Ollama. You can run the script again at any time; it skips whatever is already there.
 
-| Option | Wirkung |
+| Option | Effect |
 |---|---|
-| `-LimitRate 7M` | drosselt die grossen Downloads auf 7 MB/s |
-| `-Stt large-v3-turbo,large-v3` | Modelle für die Spracherkennung (Standard: nur `large-v3-turbo`); `large-v3` ist grösser (3 GB) |
-| `-Tts chatterbox,qwen3` | richtet beide Sprachmodelle ein (Standard: nur `chatterbox`) |
-| `-Tts none` | ohne Sprachausgabe |
+| `-LimitRate 7M` | limits the large downloads to 7 MB/s |
+| `-Stt large-v3-turbo,large-v3` | speech recognition models (default: only `large-v3-turbo`); `large-v3` is bigger (3 GB) |
+| `-Tts chatterbox,qwen3` | installs both voice models (default: only `chatterbox`) |
+| `-Tts none` | no spoken output |
 
-## Starten
+## Running
 
 ```bat
 run.bat
 ```
 
-Der Browser öffnet `http://127.0.0.1:8765`. Dort **Start** drücken und sprechen.
+Your browser opens `http://127.0.0.1:8765`. Press **Start** and speak.
 
-## Discord, TeamSpeak und Co.
+## Discord, TeamSpeak and similar
 
-Damit andere die Übersetzung hören, braucht Windows ein virtuelles Mikrofon. Dafür einmal [VB-Cable](https://vb-audio.com/Cable/) installieren (kostenlos, ein Treiber) und den Rechner neu starten. RTlation wählt danach „CABLE Input“ von selbst als Ausgabegerät; in Discord oder TeamSpeak stellt man „CABLE Output“ als Mikrofon ein. Mit **Mithören** hört man die Übersetzung zusätzlich auf dem eigenen Standardgerät.
+For others to hear the translation, Windows needs a virtual microphone. Install [VB-Cable](https://vb-audio.com/Cable/) once (free, it is a driver) and restart your computer. RTlation then picks "CABLE Input" as its output device by itself; in Discord or TeamSpeak, choose "CABLE Output" as your microphone. Tick **Mithören** (listen along) to also hear the translation on your normal speakers or headphones.
 
-## Eigene Stimme
+## Your own voice
 
-Neben dem Feld **Stimme** öffnet der Plus-Knopf einen Dialog: Text vorlesen (10 bis 15 Sekunden) oder eine vorhandene Aufnahme als Datei wählen, anhören, speichern. Die Aufnahme steht danach in der Auswahl. Sie liegt als WAV im Benutzerprofil (Windows: `%APPDATA%\RTlation\voices`) und nicht im Projektordner, damit sie beim Weitergeben des Ordners nicht mitwandert; der Ort lässt sich mit `voices_dir` in `config.yaml` ändern. Stille am Anfang und Ende wird abgeschnitten, eine Abschrift entsteht automatisch.
+Next to the **Stimme** (voice) field, the plus button opens a dialog: read the text aloud (10 to 15 seconds) or pick an existing recording, listen to it, save it. The voice then appears in the list. It is stored as a WAV file in your user profile (Windows: `%APPDATA%\RTlation\voices`), not in the project folder, so it does not travel along when you share the folder; you can change the location with `voices_dir` in `config.yaml`. Silence at the start and end is trimmed, and a transcript is created automatically.
 
-Eine deutsche Aufnahme funktioniert auch für andere Zielsprachen. Chatterbox versieht die Ausgabe mit einem Wasserzeichen (laut Hersteller unhörbar), das sie als künstlich erzeugt kennzeichnet.
+A German recording also works for other target languages. Chatterbox adds a watermark to its output (inaudible, according to the maker) that marks it as AI-generated.
 
-## Sprachmodelle
+**Ausdruck** (expression) sets how lively the voice sounds. With **Auto** ticked, each sentence is additionally adjusted to how energetically you spoke it (loudness, pitch movement, pace).
 
-| Auswahl | Verhalten |
+## Voice models
+
+| Choice | Behaviour |
 |---|---|
-| Chatterbox · schnell | Der Ton kommt stückweise, während der Satz noch entsteht. Standard. |
-| Chatterbox · ganzer Satz | Der Satz wird erst fertig berechnet und dann abgespielt (Verfahren der Bibliothek). |
-| Qwen3-TTS | Zum Vergleich; auf einer RTX 4070 Ti SUPER langsamer als gesprochen. |
+| Chatterbox · schnell (fast) | Audio starts while the sentence is still being generated. Default. |
+| Chatterbox · ganzer Satz (whole sentence) | The whole sentence is generated first, then played (the library's own method). |
+| Qwen3-TTS | For comparison; slower than real time on an RTX 4070 Ti SUPER. |
 
-Der Wechsel zwischen den beiden Chatterbox-Arten ist sofort wirksam, der Wechsel zu Qwen3-TTS lädt ein anderes Modell.
+Switching between the two Chatterbox modes takes effect immediately; switching to Qwen3-TTS loads a different model.
 
-## Einstellungen
+## Settings
 
-Alle Einstellungen stehen kommentiert in [config.yaml](config.yaml): Sprachen, Modelle, Port und die Parameter der Pausenerkennung. Sprachen, Mikrofon, Sprechpause, Stimme, Sprachmodell und Farbpalette lassen sich auch direkt in der Oberfläche umstellen.
+All settings are documented in [config.yaml](config.yaml): languages, models, port and the parameters of the pause detection. Languages, microphone, speaking pause, translation style, voice, voice model and colour theme can also be changed directly in the interface. The footer shows how much GPU memory the current selection needs.
 
-## Aufbau
+## How it works
 
 ```
-Mikrofon ─▶ Pausenerkennung ─▶ Spracherkennung ─▶ Übersetzung ─▶ Sprachausgabe ─▶ Lautsprecher
-(Browser)    Silero VAD        faster-whisper     TranslateGemma   Chatterbox        (Browser)
-                               (large-v3-turbo)   (über Ollama)    oder Qwen3-TTS
+Microphone ─▶ Pause detection ─▶ Speech recognition ─▶ Translation ─▶ Speech output ─▶ Speakers
+(browser)     Silero VAD         faster-whisper        TranslateGemma   Chatterbox       (browser)
+                                 (large-v3-turbo)      (via Ollama)     or Qwen3-TTS
 ```
 
-| Pfad | Inhalt |
+| Path | Contents |
 |---|---|
-| `src/rtlation/engine.py` | Pipeline: Audio rein, Ereignisse raus |
-| `src/rtlation/stages/` | die einzelnen Stufen (`vad`, `stt`, `translate`, `tts`) |
-| `src/rtlation/server.py` | Web-Server und WebSocket-Schnittstelle |
-| `src/rtlation/web/` | Oberfläche |
-| `workers/` | Sprachmodelle als eigene Prozesse (`base.py` beschreibt das Protokoll) |
-| `voices/` | Referenzaufnahmen für Stimmen |
-| `tests/` | Tests und eine deutsche Test-Aufnahme |
+| `src/rtlation/engine.py` | the pipeline: audio in, events out |
+| `src/rtlation/stages/` | the individual stages (`vad`, `stt`, `translate`, `tts`) |
+| `src/rtlation/server.py` | web server and WebSocket interface |
+| `src/rtlation/web/` | user interface |
+| `workers/` | voice models as separate processes (`base.py` describes the protocol) |
+| `voices/` | the bundled default voice |
+| `tests/` | tests and a German test recording |
 
-Die Oberfläche spricht immer über WebSocket mit dem Server. Lokal und später auf einem entfernten Server läuft damit derselbe Code.
+The interface always talks to the server over a WebSocket, so the same code runs locally and on a remote machine.
 
-Jedes Sprachmodell läuft in einem eigenen Prozess mit eigener Python-Umgebung (`.tools/venvs/<name>`), weil sich die Abhängigkeiten der Modelle gegenseitig ausschliessen. Welches Modell spricht, steht in `config.yaml` unter `tts.engine` und lässt sich in der Oberfläche umschalten.
+Each voice model runs in its own process with its own Python environment (`.tools/venvs/<name>`), because the models' dependencies conflict with each other. Which model speaks is set in `config.yaml` under `tts.engine` and can be switched in the interface.
 
-## Testen
+## Testing
 
 ```bat
 .venv\Scripts\python.exe -m pytest
@@ -85,24 +89,24 @@ Jedes Sprachmodell läuft in einem eigenen Prozess mit eigener Python-Umgebung (
 .venv\Scripts\python.exe tests\bench_tts.py chatterbox --check
 ```
 
-Der zweite Befehl spielt die Test-Aufnahme gegen den laufenden Server und zeigt Text, Übersetzung und Verzögerung; mit `--save` landet die Sprachausgabe als WAV im Ordner. Der dritte misst ein Sprachmodell für sich (der Server darf dabei nicht laufen) und prüft mit Whisper, ob das Gesprochene zum Text passt.
+The second command plays the test recording against the running server and shows text, translation and delay; with `--save` the spoken output is written as WAV files. The third measures a voice model on its own (the server must not be running) and uses Whisper to check that the speech matches the text.
 
-## Fahrplan
+## Roadmap
 
-1. ✅ Mikrofon → Text → Übersetzung, mit Oberfläche
-2. ✅ Sprachausgabe der Übersetzung
-3. ✅ Eigene Stimme (Stimmklon) und stückweise Ausgabe
-4. Zurückgestellt: Server-Betrieb mit Docker (braucht ebenfalls rund 10 GB Grafikspeicher)
-5. ✅ Virtuelles Mikrofon für Discord, TeamSpeak usw. über VB-Cable
+1. ✅ Microphone → text → translation, with user interface
+2. ✅ Spoken translation
+3. ✅ Your own voice (voice cloning) and streamed output
+4. On hold: server mode with Docker (also needs about 10 GB of GPU memory)
+5. ✅ Virtual microphone for Discord, TeamSpeak etc. via VB-Cable
 
-## Lizenz
+## License
 
-Der Code von RTlation steht unter der MIT-Lizenz (siehe [LICENSE](LICENSE)). Die Modelle, die `setup.bat` herunterlädt, haben eigene Bedingungen:
+RTlation's code is released under the MIT license (see [LICENSE](LICENSE)). The models downloaded by `setup.bat` come with their own terms:
 
-| Modell | Lizenz |
+| Model | License |
 |---|---|
 | Whisper large-v3 / large-v3-turbo (OpenAI) | MIT |
 | Silero VAD | MIT |
-| TranslateGemma (Google, über Ollama) | Gemma-Nutzungsbedingungen |
-| Chatterbox (Resemble AI) | MIT; die Ausgabe trägt ein Wasserzeichen |
+| TranslateGemma (Google, via Ollama) | Gemma Terms of Use |
+| Chatterbox (Resemble AI) | MIT; output carries a watermark |
 | Qwen3-TTS (Alibaba) | Apache 2.0 |

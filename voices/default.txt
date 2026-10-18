@@ -1,0 +1,1 @@
+Hello, this is the standard voice of RTlation. It is used whenever no personal voice recording has been selected.

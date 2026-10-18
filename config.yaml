@@ -1,0 +1,46 @@
+# RTlation - Einstellungen. Pfade sind relativ zu diesem Ordner.
+
+source_language: de        # Sprachcode oder "auto"
+target_language: en
+
+# Ordner für eigene Stimmaufnahmen. Leer = im Benutzerprofil
+# (Windows: %APPDATA%/RTlation/voices), damit sie beim Weitergeben des
+# Projektordners nicht mitwandern.
+voices_dir: ""
+
+server:
+  host: 127.0.0.1          # 0.0.0.0, damit andere Rechner zugreifen koennen
+  port: 8765
+
+stt:
+  model: models/whisper/large-v3-turbo
+  device: cuda             # cuda oder cpu
+  compute_type: float16    # auf der CPU: int8
+  beam_size: 5
+
+vad:
+  model: models/vad/silero_vad.onnx
+  threshold: 0.5           # ab dieser Wahrscheinlichkeit gilt ein Abschnitt als Sprache
+  min_silence_ms: 500      # so lange Pause beendet einen Satzteil
+  min_speech_ms: 250       # kuerzere Geraeusche werden verworfen
+  speech_pad_ms: 200       # Vor- und Nachlauf um die Sprache
+  soft_max_segment_s: 8    # danach reicht schon eine kurze Pause zum Schneiden
+  max_segment_s: 14        # danach wird hart geschnitten
+
+translate:
+  ollama_url: http://127.0.0.1:11434
+  model: translategemma:4b
+  keep_alive: 30m          # so lange bleibt das Modell im Grafikspeicher
+  style: literal           # literal (wörtlich), clear (deutlicher) oder polite (ausführlicher)
+
+tts:
+  enabled: true            # false: nur Text, keine Sprachausgabe
+  # chatterbox       Ton kommt stückweise, während der Satz noch entsteht (schnell)
+  # chatterbox-full  ganzer Satz am Stück (langsamer, Verfahren der Bibliothek)
+  # qwen3            Qwen3-TTS (langsam; muss mit setup.bat -Tts qwen3 eingerichtet sein)
+  engine: chatterbox
+  voice: ""                # leer = Standardstimme, sonst Name einer Aufnahme in voices/ (ohne .wav)
+  device: cuda
+  # Chatterbox: exaggeration (Ausdruck, Standard 0.5), temperature (0.8) und
+  # cfg_weight (0.5; laut Hersteller färbt bei 0 der Akzent der Aufnahme weniger ab)
+  options: {}

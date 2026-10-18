@@ -1,0 +1,5 @@
+# Chatterbox Multilingual (Resemble AI, MIT). Fester Stand von GitHub, weil
+# die Version auf PyPI das V3-Modell noch nicht kennt. Als Archiv statt über
+# Git, damit für die Installation kein Git nötig ist.
+# torch und torchaudio (CUDA) installiert setup.ps1 vorab.
+chatterbox-tts @ https://github.com/resemble-ai/chatterbox/archive/5de7a54aa4e5e2baadb0182dde554908b48b85c2.zip

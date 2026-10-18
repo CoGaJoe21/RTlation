@@ -1,0 +1,2 @@
+# Chatterbox verlangt das Wasserzeichen-Paket per Git; derselbe Stand als Archiv.
+resemble-perth @ https://github.com/resemble-ai/Perth/archive/ff1c8ac55a976971245cdd53c18d6131ca00d993.zip

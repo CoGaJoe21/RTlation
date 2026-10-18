@@ -1,0 +1,3 @@
+# Qwen3-TTS (Alibaba, Apache 2.0).
+# torch und torchaudio (CUDA) installiert setup.ps1 vorab.
+qwen-tts==0.1.1

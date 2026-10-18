@@ -23,7 +23,7 @@ Das Skript legt alles im Projektordner ab: `uv` und Python 3.11 in `.tools`, die
 | `-Tts chatterbox,qwen3` | richtet beide Sprachmodelle ein (Standard: nur `chatterbox`) |
 | `-Tts none` | ohne Sprachausgabe |
 
-`setup-all.bat` richtet alles auf einmal ein (beide Spracherkennungs- und beide Sprachausgabe-Modelle) und begrenzt die Downloads auf 8 MB/s.
+`setup-all.bat` richtet alles auf einmal ein (beide Spracherkennungs- und beide Sprachausgabe-Modelle). Zu Beginn fragt es, ob die Downloads gedrosselt werden sollen: z.B. `8` für 8 MB/s eingeben, oder einfach Enter für volle Geschwindigkeit.
 
 ## Starten
 

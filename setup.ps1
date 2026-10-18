@@ -100,17 +100,30 @@ function Get-File([string]$Url, [string]$Dest) {
     if (Test-Path $Dest) { return }
     New-Item -ItemType Directory -Force (Split-Path $Dest) | Out-Null
     $part = "$Dest.part"
-    $curlArgs = @("--location", "--fail", "--retry", "5", "--retry-delay", "3", "--output", $part)
+    # --speed-limit/--speed-time: haengt die Verbindung 60 s lang, gilt das als Abbruch.
+    # Kein --retry von curl: Damit meldet curl 8.x einen Fehler teils als Erfolg
+    # (gemessen); die Wiederholung uebernimmt die Schleife unten.
+    $curlArgs = @("--location", "--fail", "--speed-limit", "1000", "--speed-time", "60", "--output", $part)
     if ($LimitRate) { $curlArgs += @("--limit-rate", $LimitRate) }
     if ($Quiet) { $curlArgs += @("--silent", "--show-error") }
     Write-Host "  -> $(Split-Path $Dest -Leaf)"
-    $code = Invoke-Curl ($curlArgs + @("--continue-at", "-", $Url))
-    if ($code -eq 33) {
-        # Server kann nicht fortsetzen: von vorne beginnen.
-        Remove-Item -Force $part -ErrorAction SilentlyContinue
-        $code = Invoke-Curl ($curlArgs + @($Url))
+    # Bricht die Verbindung mittendrin ab (z.B. curl 56), geht es beim naechsten
+    # Versuch an derselben Stelle weiter.
+    $code = 0
+    for ($attempt = 1; $attempt -le 8; $attempt++) {
+        $code = Invoke-Curl ($curlArgs + @("--continue-at", "-", $Url))
+        if ($code -eq 0 -and (Test-Path $part)) { break }
+        if ($code -eq 0) { $code = -1 }   # Erfolg gemeldet, aber nichts angekommen
+        if ($code -eq 33) {
+            # Server kann nicht fortsetzen: von vorne beginnen.
+            Remove-Item -Force $part -ErrorAction SilentlyContinue
+        }
+        Write-Host "     Verbindung abgebrochen (curl $code), neuer Versuch $attempt von 8 ..." -ForegroundColor DarkYellow
+        Start-Sleep -Seconds ([Math]::Min(30, 3 * $attempt))
     }
-    if ($code -ne 0) { throw "Download fehlgeschlagen (curl $code): $Url" }
+    if ($code -ne 0) {
+        throw "Download fehlgeschlagen (curl $code): $Url - setup.bat einfach erneut starten, es geht an derselben Stelle weiter."
+    }
     Move-Item -Force $part $Dest
 }
 

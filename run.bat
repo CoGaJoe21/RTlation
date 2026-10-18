@@ -3,7 +3,7 @@ setlocal
 cd /d "%~dp0"
 
 if not exist ".venv\Scripts\python.exe" (
-    echo RTlation ist noch nicht eingerichtet. Bitte zuerst setup.bat ausfuehren.
+    echo RTlation is not set up yet. Please run setup.bat or setup-all.bat first.
     pause
     exit /b 1
 )

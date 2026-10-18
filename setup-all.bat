@@ -1,30 +1,30 @@
 @echo off
 setlocal
-rem Richtet RTlation mit allen Modellen ein (beide Spracherkennungs- und beide
-rem Sprachausgabe-Modelle). Ollama muss installiert sein und laufen.
-rem Fragt zu Beginn, ob die Downloads gedrosselt werden sollen.
+rem Installs RTlation with all models (both speech recognition and both voice
+rem models). Ollama must be installed and running.
+rem Asks at the start whether the downloads should be limited.
 
-echo RTlation - Einrichtung mit allen Modellen (rund 14 GB Download)
+echo RTlation - setup with all models (about 14 GB to download)
 echo.
-echo Soll der Download gedrosselt werden, damit die Leitung frei bleibt?
-echo Zahl in MB/s eingeben (z.B. 8) oder einfach Enter fuer volle Geschwindigkeit.
+echo Limit the download speed so your connection stays usable?
+echo Enter a number in MB/s (e.g. 8), or just press Enter for full speed.
 echo.
 
 :ask
 set "LIMIT="
 set /p "LIMIT=Limit in MB/s: "
 if not defined LIMIT goto full
-rem Nur ganze Zahlen ab 1 zulassen.
+rem Whole numbers from 1 only.
 echo %LIMIT%| findstr /r "^[1-9][0-9]*$" >nul || (
-    echo Bitte eine ganze Zahl eingeben, z.B. 8, oder nur Enter.
+    echo Please enter a whole number such as 8, or just press Enter.
     goto ask
 )
 echo.
-echo Downloads werden auf %LIMIT% MB/s begrenzt.
+echo Downloads limited to %LIMIT% MB/s.
 call "%~dp0setup.bat" -LimitRate %LIMIT%M -Stt large-v3-turbo,large-v3 -Tts chatterbox,qwen3
 goto :eof
 
 :full
 echo.
-echo Downloads mit voller Geschwindigkeit.
+echo Downloading at full speed.
 call "%~dp0setup.bat" -Stt large-v3-turbo,large-v3 -Tts chatterbox,qwen3

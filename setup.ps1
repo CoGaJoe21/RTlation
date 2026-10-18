@@ -1,26 +1,26 @@
 <#
 .SYNOPSIS
-  Richtet RTlation komplett im Projektordner ein: uv, Python, Pakete,
-  CUDA-Bibliotheken und Modelle. Kann beliebig oft erneut gestartet werden,
-  bereits vorhandene Teile werden uebersprungen.
+  Sets up RTlation entirely inside the project folder: uv, Python, packages,
+  CUDA libraries and models. Can be run again at any time; parts that are
+  already present are skipped.
 
 .PARAMETER LimitRate
-  Bandbreitenlimit fuer grosse Downloads im curl-Format, z.B. 7M fuer 7 MB/s.
+  Bandwidth limit for large downloads in curl format, e.g. 7M for 7 MB/s.
 
 .PARAMETER Stt
-  Modelle fuer die Spracherkennung: large-v3-turbo (schnell, Standard) und
-  large-v3 (groesser, 3 GB). Mehrere durch Komma getrennt; in der Oberflaeche
-  laesst sich zwischen den eingerichteten umschalten.
+  Speech recognition models: large-v3-turbo (fast, default) and large-v3
+  (bigger, 3 GB). Several separated by commas; the interface can switch
+  between the installed ones.
 
 .PARAMETER Tts
-  Sprachausgabe-Modelle, die eingerichtet werden: chatterbox, qwen3 oder
-  beide durch Komma getrennt. "none" laesst die Sprachausgabe weg.
+  Voice models to install: chatterbox, qwen3 or both separated by a comma.
+  "none" skips spoken output.
 
 .PARAMETER Quiet
-  Keine Fortschrittsanzeige der Downloads (fuer Log-Dateien).
+  No download progress display (for log files).
 
 .PARAMETER SkipOllama
-  Das Uebersetzungsmodell nicht ueber Ollama laden.
+  Do not fetch the translation model via Ollama.
 
 .EXAMPLE
   .\setup.ps1 -LimitRate 7M -Tts chatterbox,qwen3
@@ -78,11 +78,11 @@ $TtsEngines   = @{
 # Mit "powershell -File" kommt "a,b" als ein einzelner Wert an.
 $Stt = @($Stt | ForEach-Object { $_.Split(",") } | ForEach-Object { $_.Trim().ToLower() } | Where-Object { $_ })
 foreach ($name in $Stt) {
-    if (-not $WhisperModels.ContainsKey($name)) { throw "Unbekanntes Whisper-Modell: $name (moeglich: $($WhisperModels.Keys -join ', '))" }
+    if (-not $WhisperModels.ContainsKey($name)) { throw "Unknown Whisper model: $name (available: $($WhisperModels.Keys -join ', '))" }
 }
 $Tts = @($Tts | ForEach-Object { $_.Split(",") } | ForEach-Object { $_.Trim().ToLower() } | Where-Object { $_ -and $_ -ne "none" })
 foreach ($name in $Tts) {
-    if (-not $TtsEngines.ContainsKey($name)) { throw "Unbekanntes Sprachausgabe-Modell: $name (moeglich: $($TtsEngines.Keys -join ', '))" }
+    if (-not $TtsEngines.ContainsKey($name)) { throw "Unknown voice model: $name (available: $($TtsEngines.Keys -join ', '))" }
 }
 
 function Write-Step([string]$Text) {
@@ -118,18 +118,18 @@ function Get-File([string]$Url, [string]$Dest) {
             # Server kann nicht fortsetzen: von vorne beginnen.
             Remove-Item -Force $part -ErrorAction SilentlyContinue
         }
-        Write-Host "     Verbindung abgebrochen (curl $code), neuer Versuch $attempt von 8 ..." -ForegroundColor DarkYellow
+        Write-Host "     Connection dropped (curl $code), retry $attempt of 8 ..." -ForegroundColor DarkYellow
         Start-Sleep -Seconds ([Math]::Min(30, 3 * $attempt))
     }
     if ($code -ne 0) {
-        throw "Download fehlgeschlagen (curl $code): $Url - setup.bat einfach erneut starten, es geht an derselben Stelle weiter."
+        throw "Download failed (curl $code): $Url - just run the setup again, it resumes where it stopped."
     }
     Move-Item -Force $part $Dest
 }
 
 function Get-Json([string]$Url, [string]$Accept = "application/json") {
     $text = (& curl.exe --silent --show-error --location --fail --header "Accept: $Accept" $Url) -join "`n"
-    if ($LASTEXITCODE -ne 0) { throw "Abfrage fehlgeschlagen: $Url" }
+    if ($LASTEXITCODE -ne 0) { throw "Request failed: $Url" }
     return $text | ConvertFrom-Json
 }
 
@@ -137,7 +137,7 @@ function Assert-Sha256([string]$Path, [string]$Expected) {
     $actual = (Get-FileHash $Path -Algorithm SHA256).Hash
     if ($actual -ne $Expected) {
         Remove-Item -Force $Path
-        throw "Pruefsumme stimmt nicht: $(Split-Path $Path -Leaf)"
+        throw "Checksum mismatch: $(Split-Path $Path -Leaf)"
     }
 }
 
@@ -154,7 +154,7 @@ function Get-HfFiles([string]$Repo, [string]$Rev, [string]$Dest, [string[]]$File
 }
 
 # ---------------------------------------------------------------- uv + Python
-Write-Step "uv und Python-Umgebung"
+Write-Step "uv and Python environment"
 $UvDir = Join-Path $Tools "uv"
 $Uv    = Join-Path $UvDir "uv.exe"
 if (-not (Test-Path $Uv)) {
@@ -162,16 +162,16 @@ if (-not (Test-Path $Uv)) {
     Get-File "https://github.com/astral-sh/uv/releases/download/$UvVersion/uv-x86_64-pc-windows-msvc.zip" $zip
     Expand-Archive -Path $zip -DestinationPath $UvDir -Force
     Remove-Item -Force $zip
-    if (-not (Test-Path $Uv)) { throw "uv.exe wurde nach dem Entpacken nicht gefunden." }
+    if (-not (Test-Path $Uv)) { throw "uv.exe not found after unpacking." }
 }
 $env:UV_PYTHON_INSTALL_DIR = Join-Path $Tools "python"
 & $Uv sync --project $Root
-if ($LASTEXITCODE -ne 0) { throw "uv sync fehlgeschlagen." }
+if ($LASTEXITCODE -ne 0) { throw "uv sync failed." }
 
 # ------------------------------------------------------------ CUDA-Bibliotheken
 # faster-whisper braucht cuBLAS und cuDNN. Die DLLs kommen aus den offiziellen
 # NVIDIA-Wheels und liegen danach in .tools\cuda\bin.
-Write-Step "CUDA-Bibliotheken (cuBLAS, cuDNN)"
+Write-Step "CUDA libraries (cuBLAS, cuDNN)"
 $CudaDir    = Join-Path $Tools "cuda"
 $CudaBin    = Join-Path $CudaDir "bin"
 $CudaMarker = Join-Path $CudaDir "versions.txt"
@@ -184,7 +184,7 @@ if ($CudaHave -ne $CudaWanted) {
     foreach ($wheel in $CudaWheels) {
         $meta = Get-Json "https://pypi.org/pypi/$($wheel.Name)/$($wheel.Version)/json"
         $file = $meta.urls | Where-Object { $_.filename -like "*win_amd64.whl" } | Select-Object -First 1
-        if (-not $file) { throw "Kein Windows-Paket fuer $($wheel.Name) $($wheel.Version) gefunden." }
+        if (-not $file) { throw "No Windows package found for $($wheel.Name) $($wheel.Version)." }
         $whl = Join-Path $Tools $file.filename
         Get-File $file.url $whl
         Assert-Sha256 $whl $file.digests.sha256
@@ -202,23 +202,23 @@ if ($CudaHave -ne $CudaWanted) {
     }
     Set-Content -Path $CudaMarker -Value $CudaWanted -Encoding ascii
 } else {
-    Write-Host "  bereits vorhanden"
+    Write-Host "  already present"
 }
 
 # --------------------------------------------------------------------- Modelle
 foreach ($name in $Stt) {
-    Write-Step "Whisper-Modell $name"
+    Write-Step "Speech recognition model $name"
     Get-HfFiles $WhisperModels[$name].Repo $WhisperModels[$name].Rev (Join-Path $Models "whisper\$name") $WhisperFiles
 }
 
-Write-Step "Modell fuer die Pausenerkennung"
+Write-Step "Pause detection model"
 Get-File $VadUrl (Join-Path $Models "vad\silero_vad.onnx")
 
 # --------------------------------------------------------------- Sprachausgabe
 $WheelDir = Join-Path $Tools "wheels"
 foreach ($name in $Tts) {
     $engine = $TtsEngines[$name]
-    Write-Step "Sprachausgabe: $name"
+    Write-Step "Voice model: $name"
 
     $venv      = Join-Path $Tools "venvs\$name"
     $venvPy    = Join-Path $venv "Scripts\python.exe"
@@ -237,15 +237,15 @@ foreach ($name in $Tts) {
             $wheelPaths += $path
         }
         & $Uv venv $venv --python 3.11 --allow-existing
-        if ($LASTEXITCODE -ne 0) { throw "Python-Umgebung fuer $name konnte nicht angelegt werden." }
+        if ($LASTEXITCODE -ne 0) { throw "Could not create the Python environment for $name." }
         & $Uv pip install --python $venvPy @wheelPaths
-        if ($LASTEXITCODE -ne 0) { throw "PyTorch konnte fuer $name nicht installiert werden." }
+        if ($LASTEXITCODE -ne 0) { throw "Could not install PyTorch for $name." }
         $extra = if (Test-Path $ovrFile) { @("--override", $ovrFile) } else { @() }
         & $Uv pip install --python $venvPy -r $reqFile @extra
-        if ($LASTEXITCODE -ne 0) { throw "Pakete fuer $name konnten nicht installiert werden." }
+        if ($LASTEXITCODE -ne 0) { throw "Could not install the packages for $name." }
         Set-Content -Path $marker -Value $reqHash -Encoding ascii
     } else {
-        Write-Host "  Umgebung bereits vorhanden"
+        Write-Host "  environment already present"
     }
 
     Get-HfFiles $engine.Repo $engine.Rev (Join-Path $Models "tts\$($engine.Dir)") $engine.Files
@@ -276,40 +276,40 @@ function Import-OllamaBlobs([string]$Model) {
 }
 
 if (-not $SkipOllama) {
-    Write-Step "Uebersetzungsmodell ($OllamaModel) ueber Ollama"
+    Write-Step "Translation model ($OllamaModel) via Ollama"
     if (-not (Get-Command ollama -ErrorAction SilentlyContinue)) {
-        Write-Warning "Ollama ist nicht installiert. Bitte von https://ollama.com installieren und setup.ps1 erneut starten."
+        Write-Warning "Ollama is not installed. Please install it from https://ollama.com and run the setup again."
     } else {
         $listed = & ollama list
         if ($LASTEXITCODE -ne 0) {
-            Write-Warning "Ollama laeuft nicht. Bitte Ollama starten und setup.ps1 erneut ausfuehren."
+            Write-Warning "Ollama is not running. Please start Ollama and run the setup again."
         } elseif ($listed -match [regex]::Escape($OllamaModel)) {
-            Write-Host "  bereits vorhanden"
+            Write-Host "  already present"
         } else {
             if ($LimitRate) {
                 try {
                     Import-OllamaBlobs $OllamaModel
                 } catch {
-                    Write-Warning "Gedrosselter Download nicht moeglich ($($_.Exception.Message)). Ollama laedt ungedrosselt."
+                    Write-Warning "Limited download not possible ($($_.Exception.Message)). Ollama downloads at full speed."
                 }
             }
             & ollama pull $OllamaModel
-            if ($LASTEXITCODE -ne 0) { throw "ollama pull fehlgeschlagen." }
+            if ($LASTEXITCODE -ne 0) { throw "ollama pull failed." }
         }
     }
 }
 
 # ------------------------------------------------- virtuelles Mikrofon
-Write-Step "Virtuelles Mikrofon fuer Discord, TeamSpeak usw."
+Write-Step "Virtual microphone for Discord, TeamSpeak etc."
 $cable = Get-CimInstance Win32_SoundDevice -ErrorAction SilentlyContinue | Where-Object { $_.Name -like "*VB-Audio*" }
 if ($cable) {
-    Write-Host "  VB-Cable ist installiert. In RTlation 'CABLE Input' als Ausgabegeraet waehlen,"
-    Write-Host "  in Discord oder TeamSpeak 'CABLE Output' als Mikrofon."
+    Write-Host "  VB-Cable is installed. In RTlation choose 'CABLE Input' as output device,"
+    Write-Host "  in Discord or TeamSpeak choose 'CABLE Output' as microphone."
 } else {
-    Write-Host "  Nicht gefunden. Wer die Uebersetzung in Discord, TeamSpeak usw. senden will,"
-    Write-Host "  installiert einmal VB-Cable (kostenlos): https://vb-audio.com/Cable/"
-    Write-Host "  Danach waehlt RTlation es automatisch als Ausgabegeraet."
+    Write-Host "  Not found. To send the translation to Discord, TeamSpeak etc., install"
+    Write-Host "  VB-Cable once (free): https://vb-audio.com/Cable/"
+    Write-Host "  RTlation then picks it as output device automatically."
 }
 
-Write-Step "Fertig"
-Write-Host "Start mit:  run.bat"
+Write-Step "Done"
+Write-Host "Start with:  run.bat"
